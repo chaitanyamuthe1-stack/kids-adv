@@ -1,0 +1,25 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#ff6b6b" />
+    <meta name="description" content="Interactive Kids Learning App" />
+    <title>{% block title %}Kids Learning{% endblock %}</title>
+
+    <!-- App CSS (templates may include additional CSS in block head) -->
+    <link rel="stylesheet" href="{% static 'main/style.css' %}" />
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+    {% block content %}{% endblock %}
+
+    <!-- App scripts -->
+    <script src="{% static 'main/backend_api.js' %}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>
