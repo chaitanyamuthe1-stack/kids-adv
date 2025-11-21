@@ -10,22 +10,32 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-gyz1@jen5$#+un(#wcrhyk(ipjlkszv^o349bpzh%=a6qxk5w3'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-gyz1@jen5$#+un(#wcrhyk(ipjlkszv^o349bpzh%=a6qxk5w3')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+# Railway deployment - allow all hosts or specific Railway domains
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    '.railway.app',
+    '.up.railway.app',
+    os.environ.get('RAILWAY_STATIC_URL', '').replace('https://', '').replace('http://', ''),
+]
+
+# Add Railway domain if available
+railway_domain = os.environ.get('RAILWAY_STATIC_URL')
+if railway_domain:
+    ALLOWED_HOSTS.append(railway_domain.replace('https://', '').replace('http://', ''))
 
 
 # Application definition
@@ -37,11 +47,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',  # CORS headers for API
     'main',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise for static files
+    'corsheaders.middleware.CorsMiddleware',  # CORS middleware
+    'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -49,6 +63,15 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# CORS settings
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://your-frontend-domain.com",
+]
+
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # Allow all in development
 
 ROOT_URLCONF = 'mysite.urls'
 
@@ -75,10 +98,23 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('PGDATABASE', 'railway'),
+        'USER': os.environ.get('PGUSER', 'postgres'),
+        'PASSWORD': os.environ.get('PGPASSWORD', ''),
+        'HOST': os.environ.get('PGHOST', 'localhost'),
+        'PORT': os.environ.get('PGPORT', '5432'),
     }
 }
+
+# Fallback to SQLite for local development
+if not os.environ.get('PGDATABASE'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -122,6 +158,13 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
+# WhiteNoise settings for production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# WhiteNoise configuration
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = True
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
