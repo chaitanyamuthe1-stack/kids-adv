@@ -1,0 +1,17 @@
+[phases.setup]
+# Install Python + pip explicitly
+nixPkgs = ["python311", "python311Packages.pip", "postgresql_16.dev", "gcc"]
+
+[phases.install]
+# Use the correct python & pip paths from Nix
+cmds = [
+  "pip install -r requirements.txt"
+]
+
+[phases.build]
+cmds = [
+  "python manage.py collectstatic --noinput"
+]
+
+[phases.start]
+cmd = "python manage.py migrate && gunicorn mysite.wsgi --bind 0.0.0.0:$PORT"
