@@ -5,7 +5,7 @@ nixPkgs = ["python311", "python311Packages.pip", "postgresql_16.dev", "gcc"]
 [phases.install]
 # Use the correct python & pip paths from Nix
 cmds = [
-  "pip install -r requirements.txt"
+  "pip install --break-system-packages -r requirements.txt"
 ]
 
 [phases.build]
