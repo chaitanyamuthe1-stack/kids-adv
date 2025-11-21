@@ -21,12 +21,13 @@
                 },
                 "build": {
                     "cmds": [
+                        "python manage.py makemigrations",
                         "python manage.py collectstatic --noinput"
                     ]
                 }
             },
             "start": {
-                "cmd": "python manage.py migrate && gunicorn mysite.wsgi --bind 0.0.0.0:$PORT"
+                "cmd": "python manage.py migrate && python -m gunicorn mysite.wsgi --bind 0.0.0.0:$PORT"
             }
         }
     }
